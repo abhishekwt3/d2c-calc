@@ -1,22 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { calculateMetrics, formatCurrency } from '../utils/calculations';
 import { loadData, saveData } from '../utils/storage';
 
 export default function Dashboard() {
-  const [inputs, setInputs] = useState(null);
-  const [metrics, setMetrics] = useState(null);
+  const [inputs, setInputs] = useState(() => loadData());
   const [isEditing, setIsEditing] = useState(false);
 
-// 1. Load Data on Mount (No more fetch!)
-  useEffect(() => {
-    const data = loadData();
-    setInputs(data);
-  }, []);
+// 1. Load Data on Mount (initialized from storage)
 
-  // 2. Calculate Real-time
-  useEffect(() => {
-    if (inputs) setMetrics(calculateMetrics(inputs));
+  // 2. Calculate Real-time (derived, memoized)
+  const metrics = useMemo(() => {
+    return inputs ? calculateMetrics(inputs) : null;
   }, [inputs]);
 
   const handleInputChange = (e) => {
