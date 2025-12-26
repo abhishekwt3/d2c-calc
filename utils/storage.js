@@ -8,6 +8,7 @@ const DEFAULT_DATA = {
   gst_rate_percent: 18,
   discounts_total: 200000,
   returns_value_ex_gst: 150000,
+  fees_commissions: 50000, // <--- NEW: Marketplace/Affiliate Fees
   
   total_orders: 2500,
   orders_new_customer: 1800,
