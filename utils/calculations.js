@@ -33,8 +33,8 @@ export const calculateMetrics = (inputs) => {
   // NEW: Subtract Commissions from Revenue
   const netRevenue = netSalesExGst - discounts - returns - commissions;
   
-  const cogsSold = (unitsSold * mfgCost) + packaging;
-  const logistics = shipping + rto + pickPack + pgFees;
+  const cogsSold = unitsSold > 0 ? (unitsSold * mfgCost) + packaging : 0;
+  const logistics = unitsSold > 0 ? (shipping + rto + pickPack + pgFees) : 0;
   const variableCosts = cogsSold + logistics;
   
   const cmDollars = netRevenue - variableCosts;
