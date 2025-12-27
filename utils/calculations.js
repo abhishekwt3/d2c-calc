@@ -5,36 +5,53 @@ export const calculateMetrics = (inputs) => {
 
   // --- INPUTS ---
   const grossSales = num(inputs.gross_sales_incl_gst);
-  const gstRate = num(inputs.gst_rate_percent) || 18;
+  const gstRate = num(inputs.gst_rate_percent) || 0;
   const discounts = num(inputs.discounts_total);
   const returns = num(inputs.returns_value_ex_gst);
-  const commissions = num(inputs.fees_commissions); // <--- NEW
+  const commissions = num(inputs.fees_commissions);
+
+  const totalOrders = num(inputs.total_orders) || 0;
+  const newOrders = num(inputs.orders_new_customer) || 0;
   
-  const totalOrders = num(inputs.total_orders) || 1;
-  const newOrders = num(inputs.orders_new_customer) || 1;
-  // ... (Other inputs load as normal)
   const unitsSold = num(inputs.units_sold);
   const mfgCost = num(inputs.cost_mfg_per_unit);
   const packaging = num(inputs.packaging_consumables_total);
   const inventoryBought = num(inputs.inventory_purchased_value);
+  
   const shipping = num(inputs.shipping_expense_forward);
   const rto = num(inputs.rto_penalty_total);
   const pickPack = num(inputs.warehouse_pick_pack_total);
   const pgFees = num(inputs.payment_gateway_fees);
+  
   const adSpendTotal = num(inputs.ad_spend_total);
   const adSpendProspecting = num(inputs.ad_spend_prospecting) || (adSpendTotal * 0.8);
   const opex = num(inputs.total_fixed_opex);
   const targetProfit = num(inputs.target_profit_per_order);
 
   // --- CALCULATIONS ---
-  const gstMultiplier = 1 + (gstRate / 100);
-  const netSalesExGst = grossSales / gstMultiplier;
-  
-  // NEW: Subtract Commissions from Revenue
+
+  // 1. REVENUE (Fixed for Precision)
+  let netSalesExGst = 0;
+  let gstAmount = 0;
+
+  if (grossSales > 0) {
+    const gstMultiplier = 1 + (gstRate / 100);
+    // FIX: Force 2 decimal rounding immediately to prevent 84.74576...
+    netSalesExGst = Number((grossSales / gstMultiplier).toFixed(2));
+    // FIX: Calculate GST as the exact difference
+    gstAmount = grossSales - netSalesExGst;
+  }
+
   const netRevenue = netSalesExGst - discounts - returns - commissions;
-  
-  const cogsSold = unitsSold > 0 ? (unitsSold * mfgCost) + packaging : 0;
-  const logistics = unitsSold > 0 ? (shipping + rto + pickPack + pgFees) : 0;
+
+  // 2. COGS (Fixed: Trust Inputs)
+  // REMOVED "unitsSold > 0" check. If you type packaging cost, we count it.
+  const cogsSold = (unitsSold * mfgCost);
+
+  // 3. LOGISTICS (Fixed: Trust Inputs)
+  // REMOVED "totalOrders > 0" check. If you type shipping cost, we count it.
+  const logistics = shipping + rto + pickPack;
+
   const variableCosts = cogsSold + logistics;
   
   const cmDollars = netRevenue - variableCosts;
@@ -43,50 +60,51 @@ export const calculateMetrics = (inputs) => {
   const ebitda = cmDollars - adSpendTotal - opex;
   const netBurn = (opex + adSpendTotal + inventoryBought) - cmDollars;
 
-  // --- MARKETING METRICS ---
-  const blendedCac = adSpendTotal / newOrders; // Strict Growth Cost
-  const costPerOrder = adSpendTotal / totalOrders; // <--- NEW: Accounts for Old Customers
-  
+  // Metrics guards (avoid Infinity)
+  const blendedCac = newOrders > 0 ? adSpendTotal / newOrders : 0;
+  const costPerOrder = totalOrders > 0 ? adSpendTotal / totalOrders : 0;
   const mer = adSpendTotal > 0 ? (netRevenue / adSpendTotal) : 0;
-  const aov = totalOrders > 0 ? netRevenue / totalOrders : 0;
-
-  // --- SCALING ---
-  const variableProfitPerOrder = (cmDollars / totalOrders);
-  const opexPerOrder = opex / totalOrders;
+  
+  const variableProfitPerOrder = totalOrders > 0 ? (cmDollars / totalOrders) : 0;
+  const opexPerOrder = totalOrders > 0 ? opex / totalOrders : 0;
   const safeMaxCpa = variableProfitPerOrder - opexPerOrder - targetProfit;
+
+  // --- CLEANER BREAKDOWNS ---
+  // Helper: Removes any line item that is exactly 0 to keep the UI clean
+  const clean = (arr) => arr.filter(item => Math.abs(item.val) > 0 || item.type === 'base');
 
   return {
     netRevenue, cmDollars, cmPercent, ebitda, netBurn,
     blendedCac, costPerOrder, mer, adSpendTotal, safeMaxCpa,
     
     breakdowns: {
-      netRevenue: [
+      netRevenue: clean([
         { label: "Gross Sales", val: grossSales, type: 'base' },
-        { label: `Less GST (${gstRate}%)`, val: -(grossSales - netSalesExGst), type: 'sub' },
+        { label: `Less GST (${gstRate}%)`, val: -gstAmount, type: 'sub' },
         { label: "Discounts", val: -discounts, type: 'sub' },
         { label: "Returns", val: -returns, type: 'sub' },
-        { label: "Fees/Commissions", val: -commissions, type: 'sub' }, // <--- NEW LINE
-      ],
-      cm: [
+        { label: "Fees/Commissions", val: -commissions, type: 'sub' },
+      ]),
+      cm: clean([
         { label: "Net Revenue", val: netRevenue, type: 'base' },
         { label: "COGS", val: -cogsSold, type: 'sub' },
-        { label: "Logistics & RTO", val: -logistics, type: 'sub' },
-      ],
-      ebitda: [
+        { label: "Logistics + Packaging & RTO", val: -logistics, type: 'sub' },     
+      ]),
+      ebitda: clean([
         { label: "Contribution Margin", val: cmDollars, type: 'base' },
         { label: "Ad Spend", val: -adSpendTotal, type: 'sub' },
         { label: "Fixed OpEx", val: -opex, type: 'sub' },
-      ],
-      safeCpa: [
+      ]),
+      safeCpa: clean([
         { label: "Contribution / Order", val: variableProfitPerOrder, type: 'base' },
         { label: "OpEx / Order", val: -opexPerOrder, type: 'sub' },
         { label: "Target Profit", val: -targetProfit, type: 'sub' },
-      ],
-      burn: [
+      ]),
+      burn: clean([
         { label: "OpEx + Ads", val: opex + adSpendTotal, type: 'base' },
         { label: "Inventory Buy", val: inventoryBought, type: 'add' },
         { label: "Less: CM", val: -cmDollars, type: 'sub' },
-      ]
+      ])
     }
   };
 };

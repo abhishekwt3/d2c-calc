@@ -32,8 +32,7 @@ export default function Dashboard() {
   if (!inputs || !metrics) return <div className="p-10 text-center mt-10 text-gray-500">Loading Strategy Engine...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">
-      
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">      
       {/* HEADER */}
       <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -142,8 +141,8 @@ export default function Dashboard() {
              
              {/* Same Inputs as before */}
              <InputGroup title="Revenue"><Input name="gross_sales_incl_gst" val={inputs.gross_sales_incl_gst} onChange={handleInputChange} label="Gross Sales" /><Input name="gst_rate_percent" val={inputs.gst_rate_percent} onChange={handleInputChange} label="GST %" /><Input name="discounts_total" val={inputs.discounts_total} onChange={handleInputChange} label="Discounts" /> <Input name="fees_commissions" val={inputs.fees_commissions} onChange={handleInputChange} label="Fees / Commissions" /> <Input name="returns_value_ex_gst" val={inputs.returns_value_ex_gst} onChange={handleInputChange} label="Returns (Ex GST)" /></InputGroup>
-             <InputGroup title="COGS"><Input name="cost_mfg_per_unit" val={inputs.cost_mfg_per_unit} onChange={handleInputChange} label="Mfg Cost" /><Input name="units_sold" val={inputs.units_sold} onChange={handleInputChange} label="Units Sold" /><Input name="inventory_purchased_value" val={inputs.inventory_purchased_value} onChange={handleInputChange} label="Inv. Purchased" /></InputGroup>
-             <InputGroup title="Logistics"><Input name="shipping_expense_forward" val={inputs.shipping_expense_forward} onChange={handleInputChange} label="Shipping" /><Input name="rto_penalty_total" val={inputs.rto_penalty_total} onChange={handleInputChange} label="RTO Penalty" /><Input name="warehouse_pick_pack_total" val={inputs.warehouse_pick_pack_total} onChange={handleInputChange} label="Pick & Pack" /></InputGroup>
+             <InputGroup title="COGS"><Input name="cost_mfg_per_unit" val={inputs.cost_mfg_per_unit} onChange={handleInputChange} label="Mfg Cost / Unit" /><Input name="units_sold" val={inputs.units_sold} onChange={handleInputChange} label="Units Sold" /><Input name="inventory_purchased_value" val={inputs.inventory_purchased_value} onChange={handleInputChange} label="Inv. Purchased" /></InputGroup>
+             <InputGroup title="Logistics"><Input name="shipping_expense_forward" val={inputs.shipping_expense_forward} onChange={handleInputChange} label="Shipping" /><Input name="rto_penalty_total" val={inputs.rto_penalty_total} onChange={handleInputChange} label="RTO Penalty" /><Input name="warehouse_pick_pack_total" val={inputs.warehouse_pick_pack_total} onChange={handleInputChange} label="Packaging / Handling" /></InputGroup>
              <InputGroup title="Marketing"><Input name="ad_spend_total" val={inputs.ad_spend_total} onChange={handleInputChange} label="Total Ads" /><Input name="total_fixed_opex" val={inputs.total_fixed_opex} onChange={handleInputChange} label="Fixed OpEx" /><Input name="target_profit_per_order" val={inputs.target_profit_per_order} onChange={handleInputChange} label="Target Profit" /><Input name="orders_new_customer" val={inputs.orders_new_customer} onChange={handleInputChange} label="New Cust Orders" /><Input name="total_orders" val={inputs.total_orders} onChange={handleInputChange} label="Total Orders" /></InputGroup>
 
              <button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold mt-4 transition">
