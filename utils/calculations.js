@@ -88,7 +88,7 @@ export const calculateMetrics = (inputs) => {
       cm: clean([
         { label: "Net Revenue", val: netRevenue, type: 'base' },
         { label: "COGS", val: -cogsSold, type: 'sub' },
-        { label: "Logistics + Packaging & RTO", val: -logistics, type: 'sub' },     
+        { label: "Logistics, Packaging & RTO", val: -logistics, type: 'sub' },     
       ]),
       ebitda: clean([
         { label: "Contribution Margin", val: cmDollars, type: 'base' },

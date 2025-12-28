@@ -9,6 +9,16 @@ export default function Dashboard() {
   const [inputs, setInputs] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [theme, setTheme] = useState('light');
+  const [email, setEmail] = useState('');
+  const [waitlistStatus, setWaitlistStatus] = useState(''); // 'success' | 'error' | ''
+
+  // Load theme from localStorage on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  }, []);
 
   useEffect(() => {
     const data = loadData();
@@ -18,6 +28,31 @@ export default function Dashboard() {
   useEffect(() => {
     if (inputs) setMetrics(calculateMetrics(inputs));
   }, [inputs]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
+  const handleWaitlistSubmit = (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      setWaitlistStatus('error');
+      return;
+    }
+    // Here you would typically send to your backend
+    console.log('Waitlist signup:', email);
+    setWaitlistStatus('success');
+    setEmail('');
+    setTimeout(() => setWaitlistStatus(''), 3000);
+  };
+
+  const handleFeedback = () => {
+    // Open feedback form or mailto
+    window.open('mailto:feedback@signalroi.com?subject=SignalROI Feedback', '_blank');
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -29,20 +64,49 @@ export default function Dashboard() {
     setIsEditing(false);
   };
 
-  if (!inputs || !metrics) return <div className="p-10 text-center mt-10 text-gray-500">Loading Strategy Engine...</div>;
+
+  if (!inputs || !metrics) return (
+    <div className="p-10 text-center mt-10" style={{ color: 'var(--muted)' }}>
+      Loading Strategy Engine...
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans pb-20">      
+    <div className="min-h-screen font-sans" style={{ background: 'var(--bg)', color: 'var(--text)' }}>      
       {/* HEADER */}
-      <header className="bg-white border-b sticky top-0 z-10 shadow-sm">
+      <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">CEO&apos;s Snapshot</h1>
-            <p className="text-xs text-gray-500 font-medium">For decison makers in e-ecommerce</p>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
+            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
           </div>
-          <button onClick={() => setIsEditing(!isEditing)} className="bg-black text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition">
-            {isEditing ? 'Close Editor' : 'Edit Numbers'}
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-lg transition hover:opacity-70"
+              style={{ 
+                background: 'var(--border)',
+                color: 'var(--text)'
+              }}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+
+            {/* Edit Button */}
+            <button 
+              onClick={() => setIsEditing(!isEditing)} 
+              className="px-5 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
+              style={{ 
+                background: 'var(--text)', 
+                color: 'var(--bg)' 
+              }}
+            >
+              {isEditing ? 'Close Editor' : 'Edit Numbers'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -61,7 +125,7 @@ export default function Dashboard() {
           <BreakdownCard 
             defKey="cmDollars"
             value={metrics.cmDollars} 
-            color="text-blue-600"
+            color="#2563eb"
             breakdown={metrics.breakdowns.cm}
             sub={`${metrics.cmPercent.toFixed(1)}% Margin`}
           />
@@ -69,7 +133,7 @@ export default function Dashboard() {
           <BreakdownCard 
             defKey="ebitda"
             value={metrics.ebitda} 
-            color={metrics.ebitda > 0 ? "text-green-600" : "text-red-600"}
+            color={metrics.ebitda > 0 ? "#10b981" : "#ef4444"}
             breakdown={metrics.breakdowns.ebitda}
             sub={metrics.ebitda > 0 ? "Profitable" : "Loss Making"}
           />
@@ -99,15 +163,15 @@ export default function Dashboard() {
             ]}
           />
           <BreakdownCard 
-        defKey="costPerOrder"
-        value={metrics.costPerOrder}
-        sub="All Orders (Blended)"
-        color="text-indigo-600"
-        breakdown={[
-            { label: "Total Ad Spend", val: metrics.adSpendTotal, type: "base" },
-            { label: "÷ Total Orders", val: inputs.total_orders, type: "sub_text" }
-        ]}
-      />
+            defKey="costPerOrder"
+            value={metrics.costPerOrder}
+            sub="All Orders (Blended)"
+            color="#6366f1"
+            breakdown={[
+                { label: "Total Ad Spend", val: metrics.adSpendTotal, type: "base" },
+                { label: "÷ Total Orders", val: inputs.total_orders, type: "sub_text" }
+            ]}
+          />
         </section>
 
         {/* === SECTION 3: SCALING === */}
@@ -118,7 +182,7 @@ export default function Dashboard() {
             defKey="safeMaxCpa"
             value={metrics.safeMaxCpa} 
             breakdown={metrics.breakdowns.safeCpa}
-            color="text-purple-600"
+            color="#a855f7"
             sub="Max Bid Limit"
           />
 
@@ -126,37 +190,85 @@ export default function Dashboard() {
             defKey="netBurn"
             value={metrics.netBurn} 
             breakdown={metrics.breakdowns.burn}
-            color="text-orange-600"
+            color="#f97316"
             sub="Includes Inventory Buys"
           />
         </section>
 
         {/* EDIT DRAWER */}
         {isEditing && (
-          <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-2xl border-l p-6 overflow-y-auto z-50 animate-in slide-in-from-right">
+          <div 
+            className="fixed inset-y-0 right-0 w-96 shadow-2xl p-6 overflow-y-auto z-50 animate-in slide-in-from-right"
+            style={{ 
+              background: 'var(--surface)', 
+              borderLeft: '1px solid var(--border)' 
+            }}
+          >
              <div className="flex justify-between items-center mb-6">
-               <h2 className="font-bold text-lg">Edit Inputs</h2>
-               <button onClick={() => setIsEditing(false)} className="text-gray-400 hover:text-black">✕</button>
+               <h2 className="font-bold text-lg" style={{ color: 'var(--text)' }}>Edit Inputs</h2>
+               <button 
+                 onClick={() => setIsEditing(false)} 
+                 className="hover:opacity-70"
+                 style={{ color: 'var(--muted)' }}
+               >
+                 ✕
+               </button>
              </div>
              
              {/* Same Inputs as before */}
-             <InputGroup title="Revenue"><Input name="gross_sales_incl_gst" val={inputs.gross_sales_incl_gst} onChange={handleInputChange} label="Gross Sales" /><Input name="gst_rate_percent" val={inputs.gst_rate_percent} onChange={handleInputChange} label="GST %" /><Input name="discounts_total" val={inputs.discounts_total} onChange={handleInputChange} label="Discounts" /> <Input name="fees_commissions" val={inputs.fees_commissions} onChange={handleInputChange} label="Fees / Commissions" /> <Input name="returns_value_ex_gst" val={inputs.returns_value_ex_gst} onChange={handleInputChange} label="Returns (Ex GST)" /></InputGroup>
-             <InputGroup title="COGS"><Input name="cost_mfg_per_unit" val={inputs.cost_mfg_per_unit} onChange={handleInputChange} label="Mfg Cost / Unit" /><Input name="units_sold" val={inputs.units_sold} onChange={handleInputChange} label="Units Sold" /><Input name="inventory_purchased_value" val={inputs.inventory_purchased_value} onChange={handleInputChange} label="Inv. Purchased" /></InputGroup>
-             <InputGroup title="Logistics"><Input name="shipping_expense_forward" val={inputs.shipping_expense_forward} onChange={handleInputChange} label="Shipping" /><Input name="rto_penalty_total" val={inputs.rto_penalty_total} onChange={handleInputChange} label="RTO Penalty" /><Input name="warehouse_pick_pack_total" val={inputs.warehouse_pick_pack_total} onChange={handleInputChange} label="Packaging / Handling" /></InputGroup>
-             <InputGroup title="Marketing"><Input name="ad_spend_total" val={inputs.ad_spend_total} onChange={handleInputChange} label="Total Ads" /><Input name="total_fixed_opex" val={inputs.total_fixed_opex} onChange={handleInputChange} label="Fixed OpEx" /><Input name="target_profit_per_order" val={inputs.target_profit_per_order} onChange={handleInputChange} label="Target Profit" /><Input name="orders_new_customer" val={inputs.orders_new_customer} onChange={handleInputChange} label="New Cust Orders" /><Input name="total_orders" val={inputs.total_orders} onChange={handleInputChange} label="Total Orders" /></InputGroup>
+             <InputGroup title="Revenue">
+               <Input name="gross_sales_incl_gst" val={inputs.gross_sales_incl_gst} onChange={handleInputChange} label="Gross Sales" />
+               <Input name="gst_rate_percent" val={inputs.gst_rate_percent} onChange={handleInputChange} label="GST %" />
+               <Input name="discounts_total" val={inputs.discounts_total} onChange={handleInputChange} label="Discounts" /> 
+               <Input name="fees_commissions" val={inputs.fees_commissions} onChange={handleInputChange} label="Fees / Commissions" /> 
+               <Input name="returns_value_ex_gst" val={inputs.returns_value_ex_gst} onChange={handleInputChange} label="Returns (Ex GST)" />
+             </InputGroup>
+             <InputGroup title="COGS">
+               <Input name="cost_mfg_per_unit" val={inputs.cost_mfg_per_unit} onChange={handleInputChange} label="Mfg Cost / Unit" />
+               <Input name="units_sold" val={inputs.units_sold} onChange={handleInputChange} label="Units Sold" />
+               <Input name="inventory_purchased_value" val={inputs.inventory_purchased_value} onChange={handleInputChange} label="Inv. Purchased" />
+             </InputGroup>
+             <InputGroup title="Logistics">
+               <Input name="shipping_expense_forward" val={inputs.shipping_expense_forward} onChange={handleInputChange} label="Shipping" />
+               <Input name="rto_penalty_total" val={inputs.rto_penalty_total} onChange={handleInputChange} label="RTO Penalty" />
+               <Input name="warehouse_pick_pack_total" val={inputs.warehouse_pick_pack_total} onChange={handleInputChange} label="Packaging / Handling" />
+             </InputGroup>
+             <InputGroup title="Marketing">
+               <Input name="ad_spend_total" val={inputs.ad_spend_total} onChange={handleInputChange} label="Total Ads" />
+               <Input name="total_fixed_opex" val={inputs.total_fixed_opex} onChange={handleInputChange} label="Fixed OpEx" />
+               <Input name="target_profit_per_order" val={inputs.target_profit_per_order} onChange={handleInputChange} label="Target Profit" />
+               <Input name="orders_new_customer" val={inputs.orders_new_customer} onChange={handleInputChange} label="New Cust Orders" />
+               <Input name="total_orders" val={inputs.total_orders} onChange={handleInputChange} label="Total Orders" />
+             </InputGroup>
 
-             <button onClick={handleSave} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold mt-4 transition">
+             <button 
+               onClick={handleSave} 
+               className="w-full py-3 rounded-lg font-bold mt-4 transition hover:opacity-90"
+               style={{ 
+                 background: 'var(--accent)', 
+                 color: 'var(--bg)' 
+               }}
+             >
                Save Updates
              </button>
           </div>
         )}
       </main>
+
+      {/* FOOTER */}
+      <Footer 
+        email={email}
+        setEmail={setEmail}
+        waitlistStatus={waitlistStatus}
+        handleWaitlistSubmit={handleWaitlistSubmit}
+        handleFeedback={handleFeedback}
+      />
     </div>
   );
 }
 
 // === UPDATED COMPONENT: BREAKDOWN CARD WITH DEFINITIONS ===
-function BreakdownCard({ defKey, value, breakdown, color = "text-gray-900", sub }) {
+function BreakdownCard({ defKey, value, breakdown, color, sub }) {
   const [isOpen, setIsOpen] = useState(false);
   
   // Get definition from our new dictionary
@@ -166,35 +278,63 @@ function BreakdownCard({ defKey, value, breakdown, color = "text-gray-900", sub 
   const displayValue = typeof value === 'number' ? formatCurrency(value) : value;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+    <div 
+      className="rounded-xl shadow-sm overflow-hidden transition-all hover:shadow-md"
+      style={{ 
+        background: 'var(--surface)', 
+        border: '1px solid var(--border)' 
+      }}
+    >
       {/* Clickable Header */}
       <div className="p-5 cursor-pointer flex justify-between items-start" onClick={() => setIsOpen(!isOpen)}>
         <div>
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">{def.title}</div>
-          <div className={`text-2xl font-bold mt-1 ${color}`}>{displayValue}</div>
-          {sub && <div className="text-xs text-gray-500 mt-1">{sub}</div>}
+          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
+            {def.title}
+          </div>
+          <div 
+            className="text-2xl font-bold mt-1" 
+            style={{ color: color || 'var(--text)' }}
+          >
+            {displayValue}
+          </div>
+          {sub && <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>{sub}</div>}
         </div>
-        <button className={`text-xs font-bold px-2 py-1 rounded ${isOpen ? 'bg-gray-100 text-gray-600' : 'text-blue-600 bg-blue-50'}`}>
+        <button 
+          className="text-xs font-bold px-2 py-1 rounded"
+          style={{
+            background: isOpen ? 'var(--border)' : 'color-mix(in srgb, var(--accent) 10%, transparent)',
+            color: isOpen ? 'var(--muted)' : 'var(--accent)'
+          }}
+        >
           {isOpen ? 'Hide Info' : 'Details'}
         </button>
       </div>
       
       {/* Expanded Section: Math + English Definition */}
       {isOpen && (
-        <div className="bg-slate-50 border-t border-gray-200">
+        <div style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
             
             {/* 1. The Math Breakdown */}
             {breakdown && (
-                <div className="p-4 border-b border-gray-200 text-xs">
+                <div 
+                  className="p-4 text-xs"
+                  style={{ borderBottom: '1px solid var(--border)' }}
+                >
                     <div className="space-y-2">
                         {breakdown.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center">
-                            <span className={item.type === 'base' ? 'font-bold text-gray-700' : 'text-gray-500 pl-2'}>
-                            {item.label}
+                            <span 
+                              className={item.type === 'base' ? 'font-bold' : 'pl-2'}
+                              style={{ color: item.type === 'base' ? 'var(--text)' : 'var(--muted)' }}
+                            >
+                              {item.label}
                             </span>
-                            <span className={`font-mono ${item.val < 0 ? 'text-red-500' : 'text-gray-700'}`}>
-                            {/* Handle special custom types for dividers or text */}
-                            {item.type === 'sub_text' ? typeof item.val === 'number' ? item.val : item.val : formatCurrency(item.val)}
+                            <span 
+                              className="font-mono"
+                              style={{ color: item.val < 0 ? '#ef4444' : 'var(--text)' }}
+                            >
+                              {/* Handle special custom types for dividers or text */}
+                              {item.type === 'sub_text' ? typeof item.val === 'number' ? item.val : item.val : formatCurrency(item.val)}
                             </span>
                         </div>
                         ))}
@@ -203,11 +343,27 @@ function BreakdownCard({ defKey, value, breakdown, color = "text-gray-900", sub 
             )}
 
             {/* 2. The CEO Insight (Definition) */}
-            <div className="p-4 bg-slate-100">
-                <h4 className="text-xs font-bold text-slate-800 uppercase mb-1">What this tells you:</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">{def.insight}</p>
+            <div 
+              className="p-4"
+              style={{ background: 'color-mix(in srgb, var(--surface) 80%, var(--muted) 20%)' }}
+            >
+                <h4 
+                  className="text-xs font-bold uppercase mb-1"
+                  style={{ color: 'var(--text)' }}
+                >
+                  What this tells you:
+                </h4>
+                <p 
+                  className="text-sm leading-relaxed"
+                  style={{ color: 'var(--muted)' }}
+                >
+                  {def.insight}
+                </p>
                 {def.goodIf && (
-                    <div className="mt-2 text-xs font-medium text-blue-700 flex items-center">
+                    <div 
+                      className="mt-2 text-xs font-medium flex items-center"
+                      style={{ color: 'var(--accent)' }}
+                    >
                         <span className="mr-1">🎯</span> Target: {def.goodIf}
                     </div>
                 )}
@@ -218,20 +374,144 @@ function BreakdownCard({ defKey, value, breakdown, color = "text-gray-900", sub 
   );
 }
 
-// Helpers (Same as before)
+// Helpers
 function SectionHeader({ title, sub }) {
-  return <div className="border-b border-gray-200 pb-2 mb-2"><h2 className="font-bold text-lg text-gray-900">{title}</h2><p className="text-xs text-gray-500">{sub}</p></div>;
+  return (
+    <div className="pb-2 mb-2" style={{ borderBottom: '1px solid var(--border)' }}>
+      <h2 className="font-bold text-lg" style={{ color: 'var(--text)' }}>{title}</h2>
+      <p className="text-xs" style={{ color: 'var(--muted)' }}>{sub}</p>
+    </div>
+  );
 }
 
 function InputGroup({ title, children }) {
-  return <div className="mb-4"><h4 className="text-xs font-bold text-blue-600 uppercase mb-2">{title}</h4><div className="space-y-2">{children}</div></div>;
+  return (
+    <div className="mb-4">
+      <h4 className="text-xs font-bold uppercase mb-2" style={{ color: 'var(--accent)' }}>
+        {title}
+      </h4>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
 }
 
 function Input({ label, name, val, onChange }) {
   return (
     <div>
-      <label className="block text-xs font-bold text-gray-700 mb-1">{label}</label>
-      <input type="number" name={name} value={val} onChange={onChange} className="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 bg-white font-medium focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600" />
+      <label className="block text-xs font-bold mb-1" style={{ color: 'var(--text)' }}>
+        {label}
+      </label>
+      <input 
+        type="number" 
+        name={name} 
+        value={val} 
+        onChange={onChange} 
+        className="w-full rounded px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 transition"
+        style={{ 
+          border: '1px solid var(--border)',
+          background: 'var(--bg)',
+          color: 'var(--text)',
+          '--tw-ring-color': 'var(--accent)'
+        }}
+      />
     </div>
+  );
+}
+
+// === FOOTER COMPONENT ===
+function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleFeedback }) {
+  return (
+    <footer 
+      className="mt-16 py-12"
+      style={{ 
+        background: 'var(--surface)', 
+        borderTop: '1px solid var(--border)' 
+      }}
+    >
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          
+          {/* Left Section - Waitlist */}
+          <div>
+            <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
+              Join the Beta Waitlist
+            </h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
+The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise (ROAS) from the Signal (Contribution Margin & EBITDA).            </p>
+            
+            <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 transition"
+                style={{ 
+                  border: '1px solid var(--border)',
+                  background: 'var(--bg)',
+                  color: 'var(--text)',
+                  '--tw-ring-color': 'var(--accent)'
+                }}
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
+                style={{ 
+                  background: 'var(--accent)', 
+                  color: 'var(--bg)' 
+                }}
+              >
+                Join Waitlist
+              </button>
+            </form>
+            
+            {/* Status Messages */}
+            {waitlistStatus === 'success' && (
+              <div 
+                className="mt-3 text-sm font-medium flex items-center gap-2"
+                style={{ color: '#10b981' }}
+              >
+                <span>✓</span> You're on the list! We'll be in touch soon.
+              </div>
+            )}
+            {waitlistStatus === 'error' && (
+              <div 
+                className="mt-3 text-sm font-medium flex items-center gap-2"
+                style={{ color: '#ef4444' }}
+              >
+                <span>✕</span> Please enter a valid email address.
+              </div>
+            )}
+          </div>
+
+          {/* Right Section - Feedback & Info */}
+          <div className="flex flex-col items-start md:items-end">
+            <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
+              Help Us Improve
+            </h3>
+            <p className="text-sm mb-4 md:text-right" style={{ color: 'var(--muted)' }}>
+              Your feedback shapes the future of SignalROI.
+            </p>
+            
+            <button
+              onClick={handleFeedback}
+              className="px-6 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
+              style={{ 
+                background: 'var(--border)', 
+                color: 'var(--text)' 
+              }}
+            >
+              Send Feedback
+            </button>
+
+            {/* Additional Info */}
+            <div className="mt-8 text-xs md:text-right" style={{ color: 'var(--muted)' }}>
+              <p>© 2026 SignalROI. Built for decision makers.</p>
+              <p className="mt-1">Strategy Engine v1.0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
   );
 }
