@@ -36,17 +36,42 @@ export default function Dashboard() {
     localStorage.setItem('theme', newTheme);
   };
 
-  const handleWaitlistSubmit = (e) => {
+  const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       setWaitlistStatus('error');
+      setTimeout(() => setWaitlistStatus(''), 3000);
       return;
     }
-    // Here you would typically send to your backend
-    console.log('Waitlist signup:', email);
-    setWaitlistStatus('success');
-    setEmail('');
-    setTimeout(() => setWaitlistStatus(''), 3000);
+
+    setWaitlistStatus('loading');
+
+    try {
+      const response = await fetch('/api/mailchimp/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          listType: 'beta' // Tag for beta waitlist
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setWaitlistStatus('success');
+        setEmail('');
+        setTimeout(() => setWaitlistStatus(''), 5000);
+      } else {
+        setWaitlistStatus('error');
+        console.error('Mailchimp error:', data.error);
+        setTimeout(() => setWaitlistStatus(''), 3000);
+      }
+    } catch (error) {
+      setWaitlistStatus('error');
+      console.error('Submission error:', error);
+      setTimeout(() => setWaitlistStatus(''), 3000);
+    }
   };
 
   const handleFeedback = () => {
@@ -77,8 +102,8 @@ export default function Dashboard() {
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
-            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI </h1>
+            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>Sign up for early access below</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -114,7 +139,7 @@ export default function Dashboard() {
         
         {/* === SECTION 1: PROFITABILITY === */}
         <section className="space-y-6">
-          <SectionHeader title="1. Are we Profitable?" sub="Financial Health & Margins" />
+          <SectionHeader title="1. Profitability" sub="Financial Health & Margins" />
           
           <BreakdownCard 
             defKey="netRevenue"
@@ -434,11 +459,12 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
           {/* Left Section - Waitlist */}
           <div>
             <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-              Join the Beta Waitlist
+              Join the Waitlist - To access the full version
             </h3>
             <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise (ROAS) from the Signal (Contribution Margin & EBITDA).            </p>
-            
+              The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise (ROAS) from the Signal (Contribution Margin & EBITDA).
+            </p>
+
             <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
               <input
                 type="email"
@@ -455,23 +481,24 @@ The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise 
               />
               <button
                 type="submit"
-                className="px-6 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
+                disabled={waitlistStatus === 'loading'}
+                className="px-6 py-2 rounded-lg text-sm font-bold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ 
                   background: 'var(--accent)', 
                   color: 'var(--bg)' 
                 }}
               >
-                Join Waitlist
+                {waitlistStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>
             </form>
-            
+
             {/* Status Messages */}
             {waitlistStatus === 'success' && (
               <div 
                 className="mt-3 text-sm font-medium flex items-center gap-2"
                 style={{ color: '#10b981' }}
               >
-                <span>✓</span> You're on the list! We'll be in touch soon.
+                <span>✓</span> You&apos;re on the list! We&apos;ll be in touch soon.
               </div>
             )}
             {waitlistStatus === 'error' && (
@@ -482,16 +509,16 @@ The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise 
                 <span>✕</span> Please enter a valid email address.
               </div>
             )}
-          </div>
+         </div>
 
           {/* Right Section - Feedback & Info */}
           <div className="flex flex-col items-start md:items-end">
-            <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
+            {/* <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
               Help Us Improve
             </h3>
             <p className="text-sm mb-4 md:text-right" style={{ color: 'var(--muted)' }}>
               Your feedback shapes the future of SignalROI.
-            </p>
+            </p> */}
             
             <button
               onClick={handleFeedback}
@@ -507,7 +534,6 @@ The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise 
             {/* Additional Info */}
             <div className="mt-8 text-xs md:text-right" style={{ color: 'var(--muted)' }}>
               <p>© 2026 SignalROI. Built for decision makers.</p>
-              <p className="mt-1">Strategy Engine v1.0</p>
             </div>
           </div>
         </div>
