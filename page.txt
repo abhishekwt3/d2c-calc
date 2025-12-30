@@ -12,6 +12,8 @@ export default function Dashboard() {
   const [theme, setTheme] = useState('light');
   const [email, setEmail] = useState('');
   const [waitlistStatus, setWaitlistStatus] = useState(''); // 'success' | 'error' | 'loading' | ''
+  const [upsellEmail, setUpsellEmail] = useState('');
+  const [upsellStatus, setUpsellStatus] = useState(''); // 'success' | 'error' | 'loading' | ''
   const [showAIInsights, setShowAIInsights] = useState(false);
   const [aiInsights, setAiInsights] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
@@ -82,6 +84,43 @@ export default function Dashboard() {
     window.open('mailto:feedback@signalroi.com?subject=SignalROI Feedback', '_blank');
   };
 
+  const handleUpsellSubmit = async (e) => {
+    e.preventDefault();
+    if (!upsellEmail || !upsellEmail.includes('@')) {
+      setUpsellStatus('error');
+      setTimeout(() => setUpsellStatus(''), 3000);
+      return;
+    }
+    
+    setUpsellStatus('loading');
+    
+    try {
+      const response = await fetch('/api/mailchimp/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: upsellEmail, 
+          listType: 'automation' // Tag for automation waitlist
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setUpsellStatus('success');
+        setUpsellEmail('');
+        setTimeout(() => setUpsellStatus(''), 5000);
+      } else {
+        setUpsellStatus('error');
+        console.error('Mailchimp error:', data.error);
+        setTimeout(() => setUpsellStatus(''), 3000);
+      }
+    } catch (error) {
+      setUpsellStatus('error');
+      console.error('Submission error:', error);
+      setTimeout(() => setUpsellStatus(''), 3000);
+    }
+  };
 
   const getAIInsights = async () => {
     if (!metrics) return;
@@ -197,6 +236,7 @@ export default function Dashboard() {
       </header>
 
       {/* HERO SECTION */}
+      <Hero />
 
       <main className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -351,6 +391,14 @@ export default function Dashboard() {
           />
         )}
       </main>
+
+      {/* UPSELL & WAITLIST SECTION */}
+      <UpsellSection
+        upsellEmail={upsellEmail}
+        setUpsellEmail={setUpsellEmail}
+        upsellStatus={upsellStatus}
+        handleUpsellSubmit={handleUpsellSubmit}
+      />
 
       {/* FOOTER */}
       <Footer 
@@ -566,7 +614,7 @@ function AIInsightsPanel({ insights, loading, onClose }) {
               }}
             />
           ) : (
-            <p style={{ color: 'var(--muted)' }}>Click AI Insights to analyze your metrics.</p>
+            <p style={{ color: 'var(--muted)' }}>Click "AI Insights" to analyze your metrics.</p>
           )}
         </div>
       )}
@@ -581,8 +629,103 @@ function AIInsightsPanel({ insights, loading, onClose }) {
 }
 
 // === HERO COMPONENT ===
+function Hero() {
+  return (
+    <section className="py-16 text-center">
+      <div className="max-w-4xl mx-auto px-6">
+        {/* Headline with Badge */}
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+            Simulate Your D2C Business
+          </h1>
+          <span 
+            className="text-xs font-bold px-3 py-1 rounded-full tracking-wide"
+            style={{ 
+              background: 'var(--border)',
+              color: 'var(--muted)',
+              border: '1px solid var(--border)'
+            }}
+          >
+            BETA SIMULATOR
+          </span>
+        </div>
+        
+        {/* Sub-headline */}
+        <p className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: 'var(--muted)' }}>
+          Enter your monthly metrics below to reveal your true Contribution Margin, Cash Burn, and Efficiency Score.
+        </p>
+      </div>
+    </section>
+  );
+}
 
-
+// === UPSELL SECTION COMPONENT ===
+function UpsellSection({ upsellEmail, setUpsellEmail, upsellStatus, handleUpsellSubmit }) {
+  return (
+    <section 
+      className="py-16 mt-12"
+      style={{ background: '#F9FAFB' }}
+    >
+      <div className="max-w-4xl mx-auto px-6 text-center">
+        {/* Headline */}
+        <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--text)' }}>
+          Don't just simulate it. Automate it.
+        </h2>
+        
+        {/* Body Text */}
+        <p className="text-lg mb-8 max-w-2xl mx-auto" style={{ color: 'var(--muted)' }}>
+          You just simulated your profitability manually. The real SignalROI dashboard connects to your Shopify & Ads Manager to track these numbers automatically in real-time.
+        </p>
+        
+        {/* Signup Form */}
+        <form onSubmit={handleUpsellSubmit} className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+          <input
+            type="email"
+            placeholder="Enter your email..."
+            value={upsellEmail}
+            onChange={(e) => setUpsellEmail(e.target.value)}
+            className="flex-1 rounded-lg px-5 py-3 text-base focus:outline-none focus:ring-2 transition"
+            style={{ 
+              border: '1px solid #e5e7eb',
+              background: '#ffffff',
+              color: '#0f172a',
+              '--tw-ring-color': 'var(--accent)'
+            }}
+          />
+          <button
+            type="submit"
+            disabled={upsellStatus === 'loading'}
+            className="px-8 py-3 rounded-lg text-base font-bold transition hover:opacity-90 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ 
+              background: '#0f172a', 
+              color: '#ffffff' 
+            }}
+          >
+            {upsellStatus === 'loading' ? 'Joining...' : 'Join Waitlist for Automation'}
+          </button>
+        </form>
+        
+        {/* Status Messages */}
+        {upsellStatus === 'success' && (
+          <div 
+            className="mt-4 text-base font-medium flex items-center justify-center gap-2"
+            style={{ color: '#10b981' }}
+          >
+            <span>✓</span> Thanks! You're on the automation waitlist.
+          </div>
+        )}
+        {upsellStatus === 'error' && (
+          <div 
+            className="mt-4 text-base font-medium flex items-center justify-center gap-2"
+            style={{ color: '#ef4444' }}
+          >
+            <span>✕</span> Please enter a valid email address.
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 // === FOOTER COMPONENT ===
 function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleFeedback }) {
@@ -600,12 +743,12 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
           {/* Left Section - Waitlist */}
           <div>
             <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-              Join the Waitlist - To access the full version
+              Join the Beta Waitlist
             </h3>
             <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-              The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise (ROAS) from the Signal (Contribution Margin & EBITDA).
+              Be the first to access advanced features and analytics for your e-commerce business.
             </p>
-
+            
             <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
               <input
                 type="email"
@@ -632,14 +775,14 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
                 {waitlistStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>
             </form>
-
+            
             {/* Status Messages */}
             {waitlistStatus === 'success' && (
               <div 
                 className="mt-3 text-sm font-medium flex items-center gap-2"
                 style={{ color: '#10b981' }}
               >
-                <span>✓</span> You&apos;re on the list! We&apos;ll be in touch soon.
+                <span>✓</span> You're on the list! We'll be in touch soon.
               </div>
             )}
             {waitlistStatus === 'error' && (
@@ -650,16 +793,16 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
                 <span>✕</span> Please enter a valid email address.
               </div>
             )}
-         </div>
+          </div>
 
           {/* Right Section - Feedback & Info */}
           <div className="flex flex-col items-start md:items-end">
-            {/* <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
+            <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
               Help Us Improve
             </h3>
             <p className="text-sm mb-4 md:text-right" style={{ color: 'var(--muted)' }}>
               Your feedback shapes the future of SignalROI.
-            </p> */}
+            </p>
             
             <button
               onClick={handleFeedback}
@@ -674,7 +817,8 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
 
             {/* Additional Info */}
             <div className="mt-8 text-xs md:text-right" style={{ color: 'var(--muted)' }}>
-              <p>© 2026 SignalROI. Built for decision makers.</p>
+              <p>© 2024 SignalROI. Built for decision makers.</p>
+              <p className="mt-1">Strategy Engine v1.0</p>
             </div>
           </div>
         </div>
