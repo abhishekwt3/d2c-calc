@@ -3,7 +3,8 @@ import { useState, useEffect } from 'react';
 import { calculateMetrics, formatCurrency } from '../utils/calculations';
 import { loadData, saveData } from '../utils/storage';
 // Import the text definitions
-import { METRIC_DEFINITIONS } from '../utils/definitions'; 
+import { METRIC_DEFINITIONS } from '../utils/definitions';
+import Image from 'next/image'; 
 
 export default function Dashboard() {
   const [inputs, setInputs] = useState(null);
@@ -148,7 +149,9 @@ export default function Dashboard() {
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+              SignalROI
+            </h1>
             <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
           </div>
 
