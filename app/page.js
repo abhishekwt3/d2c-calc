@@ -184,17 +184,7 @@ export default function Dashboard() {
             </button>
 
             {/* Theme Toggle Button */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-lg transition hover:opacity-70"
-              style={{ 
-                background: 'var(--border)',
-                color: 'var(--text)'
-              }}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
+            
 
             {/* Edit Button */}
             <button 
@@ -206,6 +196,17 @@ export default function Dashboard() {
               }}
             >
               {isEditing ? 'Close Editor' : 'Edit Numbers'}
+            </button>
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-lg transition hover:opacity-70"
+              style={{ 
+                background: 'var(--border)',
+                color: 'var(--text)'
+              }}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
             </button>
           </div>
         </div>
