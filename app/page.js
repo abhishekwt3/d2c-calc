@@ -148,11 +148,23 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
-              SignalROI
-            </h1>
-            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/android-chrome-512x512.png"
+              alt="SignalROI Logo"
+              width={48}
+              height={48}
+              className="h-11 w-auto object-contain"
+              priority // Optional: good for logos above the fold
+            />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+                SignalROI
+              </h1>
+              <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
+                For decision makers in e-commerce
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
