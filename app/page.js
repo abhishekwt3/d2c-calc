@@ -147,7 +147,7 @@ export default function Dashboard() {
     <div className="min-h-screen font-sans" style={{ background: 'var(--bg)', color: 'var(--text)' }}>      
       {/* HEADER */}
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-left">
           <div className="flex items-center gap-3">
             <Image
               src="/android-chrome-512x512.png"
@@ -156,59 +156,87 @@ export default function Dashboard() {
               height={48}
               className="h-11 w-auto object-contain"
               priority // Optional: good for logos above the fold
-            />
-            <div>
+            /> 
               <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
                 SignalROI
-              </h1>
-              <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
-                For decision makers in e-commerce
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* AI Insights Button */}
-            <button 
-              onClick={getAIInsights}
-              disabled={aiLoading || !metrics}
-              className="px-4 py-2 rounded-lg text-sm font-bold transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              style={{ 
-                background: 'var(--accent)',
-                color: 'var(--bg)'
-              }}
-              title="Get AI-powered insights on your metrics"
-            >
-              <span>✨</span>
-              {aiLoading ? 'Analyzing...' : 'AI Insights'}
-            </button>
-
-            {/* Theme Toggle Button */}
+              </h1>  
             
-
-            {/* Edit Button */}
-            <button 
-              onClick={() => setIsEditing(!isEditing)} 
-              className="px-5 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
-              style={{ 
-                background: 'var(--text)', 
-                color: 'var(--bg)' 
-              }}
-            >
-              {isEditing ? 'Close Editor' : 'Edit Numbers'}
-            </button>
-            <button 
-              onClick={toggleTheme}
-              className="p-2 rounded-lg transition hover:opacity-70"
-              style={{ 
-                background: 'var(--border)',
-                color: 'var(--text)'
-              }}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
           </div>
+           
+
+<div className="sticky top-0 z-20 px-4 py-3">
+  <div className="flex items-center gap-2">
+    {/* AI Insights Button */}
+        <button 
+          onClick={getAIInsights}
+          disabled={aiLoading || !metrics}
+          className="
+            flex-1 sm:flex-initial
+            px-2.5 sm:px-3 
+            py-1.5 sm:py-2
+            text-xs sm:text-sm 
+            font-semibold
+            rounded-lg
+            flex items-center justify-center gap-1
+            transition
+            disabled:opacity-50
+            whitespace-nowrap
+          "
+          style={{
+            background: 'var(--accent)',
+            color: 'var(--bg)'
+          }}
+        >
+          <span className="text-sm">✨</span>
+          <span className="hidden xs:inline sm:inline">
+            {aiLoading ? 'Analyzing…' : 'AI Insights'}
+          </span>
+          <span className="xs:hidden sm:hidden">
+            {aiLoading ? 'AI...' : 'Insights'}
+          </span>
+        </button>
+
+        {/* Edit Button */}
+        <button 
+          onClick={() => setIsEditing(!isEditing)}
+          className="
+            flex-1 sm:flex-initial
+            px-2.5 sm:px-3
+            py-1.5 sm:py-2
+            text-xs sm:text-sm 
+            font-semibold
+            rounded-lg
+            transition
+            whitespace-nowrap
+          "
+          style={{
+            background: 'var(--text)',
+            color: 'var(--bg)'
+          }}
+        >
+          {isEditing ? 'Close' : 'Edit'}
+        </button>
+
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          className="
+            px-2.5 sm:px-3
+            py-1.5 sm:py-2
+            rounded-lg
+            flex items-center justify-center
+            transition
+          "
+          style={{
+            background: 'var(--border)',
+            color: 'var(--text)'
+          }}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+        >
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
+      </div>
+    </div>
         </div>
       </header>
 
@@ -218,7 +246,7 @@ export default function Dashboard() {
         
         {/* === SECTION 1: PROFITABILITY === */}
         <section className="space-y-6">
-          <SectionHeader title="1. Are we Profitable?" sub="Financial Health & Margins" />
+          <SectionHeader title="1. Profitability" sub="Financial Health & Margins" />
           
           <BreakdownCard 
             defKey="netRevenue"
