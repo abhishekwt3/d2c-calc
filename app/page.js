@@ -2,9 +2,8 @@
 import { useState, useEffect } from 'react';
 import { calculateMetrics, formatCurrency } from '../utils/calculations';
 import { loadData, saveData } from '../utils/storage';
-// Import the text definitions
 import { METRIC_DEFINITIONS } from '../utils/definitions';
-import Image from 'next/image'; 
+import AIChat from '../components/AIChat';
 
 export default function Dashboard() {
   const [inputs, setInputs] = useState(null);
@@ -12,12 +11,8 @@ export default function Dashboard() {
   const [isEditing, setIsEditing] = useState(false);
   const [theme, setTheme] = useState('light');
   const [email, setEmail] = useState('');
-  const [waitlistStatus, setWaitlistStatus] = useState(''); // 'success' | 'error' | 'loading' | ''
-  const [showAIInsights, setShowAIInsights] = useState(false);
-  const [aiInsights, setAiInsights] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
+  const [waitlistStatus, setWaitlistStatus] = useState('');
 
-  // Load theme from localStorage on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
@@ -40,6 +35,16 @@ export default function Dashboard() {
     localStorage.setItem('theme', newTheme);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setInputs(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  };
+
+  const handleSave = () => {
+    saveData(inputs);
+    setIsEditing(false);
+  };
+
   const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -56,7 +61,7 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email, 
-          listType: 'beta' // Tag for beta waitlist
+          listType: 'beta'
         }),
       });
       
@@ -79,174 +84,55 @@ export default function Dashboard() {
   };
 
   const handleFeedback = () => {
-    // Open feedback form or mailto
     window.open('mailto:feedback@signalroi.com?subject=SignalROI Feedback', '_blank');
   };
 
-
-  const getAIInsights = async () => {
-    if (!metrics) return;
-    
-    setAiLoading(true);
-    setShowAIInsights(true);
-    
-    try {
-      const response = await fetch('/api/ai/insights', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          metrics: {
-            netRevenue: metrics.netRevenue,
-            cmDollars: metrics.cmDollars,
-            cmPercent: metrics.cmPercent,
-            ebitda: metrics.ebitda,
-            mer: metrics.mer,
-            blendedCac: metrics.blendedCac,
-            costPerOrder: metrics.costPerOrder,
-            safeMaxCpa: metrics.safeMaxCpa,
-            netBurn: metrics.netBurn,
-            adSpendTotal: metrics.adSpendTotal
-          }
-        }),
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        setAiInsights(data.insights);
-      } else {
-        setAiInsights('Sorry, I couldn\'t generate insights at this time. Please try again.');
-        console.error('AI API error:', data.error);
-      }
-    } catch (error) {
-      setAiInsights('Sorry, I couldn\'t generate insights at this time. Please try again.');
-      console.error('AI insights error:', error);
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setInputs(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
-  };
-
-  const handleSave = () => {
-    saveData(inputs);
-    setIsEditing(false);
-  };
-
-
-  if (!inputs || !metrics) return (
-    <div className="p-10 text-center mt-10" style={{ color: 'var(--muted)' }}>
-      Loading Strategy Engine...
-    </div>
-  );
+  if (!inputs || !metrics) return <div className="p-10 text-center mt-10" style={{ color: 'var(--muted)' }}>Loading Strategy Engine...</div>;
 
   return (
     <div className="min-h-screen font-sans" style={{ background: 'var(--bg)', color: 'var(--text)' }}>      
       {/* HEADER */}
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-left">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/android-chrome-512x512.png"
-              alt="SignalROI Logo"
-              width={48}
-              height={48}
-              className="h-11 w-auto object-contain"
-              priority // Optional: good for logos above the fold
-            /> 
-              <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>
-                SignalROI
-              </h1>  
-            
+        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
+            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
           </div>
-           
 
-<div className="sticky top-0 z-20 px-4 py-3">
-  <div className="flex items-center gap-2">
-    {/* AI Insights Button */}
-        <button 
-          onClick={getAIInsights}
-          disabled={aiLoading || !metrics}
-          className="
-            flex-1 sm:flex-initial
-            px-2.5 sm:px-3 
-            py-1.5 sm:py-2
-            text-xs sm:text-sm 
-            font-semibold
-            rounded-lg
-            flex items-center justify-center gap-1
-            transition
-            disabled:opacity-50
-            whitespace-nowrap
-          "
-          style={{
-            background: 'var(--accent)',
-            color: 'var(--bg)'
-          }}
-        >
-          <span className="text-sm">✨</span>
-          <span className="hidden xs:inline sm:inline">
-            {aiLoading ? 'Analyzing…' : 'AI Insights'}
-          </span>
-          <span className="xs:hidden sm:hidden">
-            {aiLoading ? 'AI...' : 'Insights'}
-          </span>
-        </button>
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle Button */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-lg transition hover:opacity-70"
+              style={{ 
+                background: 'var(--border)',
+                color: 'var(--text)'
+              }}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
 
-        {/* Edit Button */}
-        <button 
-          onClick={() => setIsEditing(!isEditing)}
-          className="
-            flex-1 sm:flex-initial
-            px-2.5 sm:px-3
-            py-1.5 sm:py-2
-            text-xs sm:text-sm 
-            font-semibold
-            rounded-lg
-            transition
-            whitespace-nowrap
-          "
-          style={{
-            background: 'var(--text)',
-            color: 'var(--bg)'
-          }}
-        >
-          {isEditing ? 'Close' : 'Edit'}
-        </button>
-
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          className="
-            px-2.5 sm:px-3
-            py-1.5 sm:py-2
-            rounded-lg
-            flex items-center justify-center
-            transition
-          "
-          style={{
-            background: 'var(--border)',
-            color: 'var(--text)'
-          }}
-          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙' : '☀️'}
-        </button>
-      </div>
-    </div>
+            {/* Edit Button */}
+            <button 
+              onClick={() => setIsEditing(!isEditing)} 
+              className="px-5 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
+              style={{ 
+                background: 'var(--text)', 
+                color: 'var(--bg)' 
+              }}
+            >
+              {isEditing ? 'Close Editor' : 'Edit Numbers'}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* HERO SECTION */}
-
-      <main className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto px-6 py-8 pb-32 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* === SECTION 1: PROFITABILITY === */}
         <section className="space-y-6">
-          <SectionHeader title="1. Profitability" sub="Financial Health & Margins" />
+          <SectionHeader title="1. Are we Profitable?" sub="Financial Health & Margins" />
           
           <BreakdownCard 
             defKey="netRevenue"
@@ -275,14 +161,12 @@ export default function Dashboard() {
         <section className="space-y-6">
           <SectionHeader title="2. Efficiency" sub="Team Performance & Ad Spend" />
           
-          {/* Converted to BreakdownCard for consistency */}
           <BreakdownCard 
             defKey="mer"
             value={metrics.mer.toFixed(2) + "x"}
-            // Manual tiny breakdown for MER
             breakdown={[
                 { label: "Net Revenue", val: metrics.netRevenue, type: "base" },
-                { label: "÷ Total Ad Spend", val: metrics.adSpendTotal, type: "sub_text" } // Custom type to show text
+                { label: "÷ Total Ad Spend", val: metrics.adSpendTotal, type: "sub_text" }
             ]}
           />
 
@@ -347,7 +231,6 @@ export default function Dashboard() {
                </button>
              </div>
              
-             {/* Same Inputs as before */}
              <InputGroup title="Revenue">
                <Input name="gross_sales_incl_gst" val={inputs.gross_sales_incl_gst} onChange={handleInputChange} label="Gross Sales" />
                <Input name="gst_rate_percent" val={inputs.gst_rate_percent} onChange={handleInputChange} label="GST %" />
@@ -385,15 +268,6 @@ export default function Dashboard() {
              </button>
           </div>
         )}
-
-        {/* AI INSIGHTS PANEL */}
-        {showAIInsights && (
-          <AIInsightsPanel 
-            insights={aiInsights}
-            loading={aiLoading}
-            onClose={() => setShowAIInsights(false)}
-          />
-        )}
       </main>
 
       {/* FOOTER */}
@@ -404,18 +278,18 @@ export default function Dashboard() {
         handleWaitlistSubmit={handleWaitlistSubmit}
         handleFeedback={handleFeedback}
       />
+
+      {/* AI CHAT - Fixed at bottom */}
+      {metrics && !isEditing && <AIChat metrics={metrics} />}
     </div>
   );
 }
 
-// === UPDATED COMPONENT: BREAKDOWN CARD WITH DEFINITIONS ===
+// === BREAKDOWN CARD COMPONENT ===
 function BreakdownCard({ defKey, value, breakdown, color, sub }) {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Get definition from our new dictionary
   const def = METRIC_DEFINITIONS[defKey] || { title: defKey, insight: "No definition found." };
-  
-  // Handle formatting based on if value is string (like "3.5x") or number
   const displayValue = typeof value === 'number' ? formatCurrency(value) : value;
 
   return (
@@ -426,7 +300,6 @@ function BreakdownCard({ defKey, value, breakdown, color, sub }) {
         border: '1px solid var(--border)' 
       }}
     >
-      {/* Clickable Header */}
       <div className="p-5 cursor-pointer flex justify-between items-start" onClick={() => setIsOpen(!isOpen)}>
         <div>
           <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>
@@ -451,11 +324,8 @@ function BreakdownCard({ defKey, value, breakdown, color, sub }) {
         </button>
       </div>
       
-      {/* Expanded Section: Math + English Definition */}
       {isOpen && (
         <div style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
-            
-            {/* 1. The Math Breakdown */}
             {breakdown && (
                 <div 
                   className="p-4 text-xs"
@@ -474,7 +344,6 @@ function BreakdownCard({ defKey, value, breakdown, color, sub }) {
                               className="font-mono"
                               style={{ color: item.val < 0 ? '#ef4444' : 'var(--text)' }}
                             >
-                              {/* Handle special custom types for dividers or text */}
                               {item.type === 'sub_text' ? typeof item.val === 'number' ? item.val : item.val : formatCurrency(item.val)}
                             </span>
                         </div>
@@ -483,7 +352,6 @@ function BreakdownCard({ defKey, value, breakdown, color, sub }) {
                 </div>
             )}
 
-            {/* 2. The CEO Insight (Definition) */}
             <div 
               className="p-4"
               style={{ background: 'color-mix(in srgb, var(--surface) 80%, var(--muted) 20%)' }}
@@ -559,80 +427,11 @@ function Input({ label, name, val, onChange }) {
   );
 }
 
-// === AI INSIGHTS PANEL COMPONENT ===
-function AIInsightsPanel({ insights, loading, onClose }) {
-  return (
-    <div 
-      className="fixed inset-y-0 left-0 w-full md:w-[600px] shadow-2xl p-6 overflow-y-auto z-50 animate-in slide-in-from-left"
-      style={{ 
-        background: 'var(--surface)', 
-        borderRight: '1px solid var(--border)' 
-      }}
-    >
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h2 className="font-bold text-xl flex items-center gap-2" style={{ color: 'var(--text)' }}>
-            <span>✨</span> AI Insights
-          </h2>
-          <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-            Analysis of your business metrics
-          </p>
-        </div>
-        <button 
-          onClick={onClose} 
-          className="hover:opacity-70 text-xl"
-          style={{ color: 'var(--muted)' }}
-        >
-          ✕
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderColor: 'var(--accent)' }}></div>
-          <p className="text-sm" style={{ color: 'var(--muted)' }}>Analyzing your metrics...</p>
-        </div>
-      ) : (
-        <div 
-          className="prose prose-sm max-w-none rounded-lg p-6"
-          style={{ 
-            background: 'var(--bg)',
-            border: '1px solid var(--border)',
-            color: 'var(--text)'
-          }}
-        >
-          {insights ? (
-            <div 
-              className="whitespace-pre-wrap leading-relaxed"
-              style={{ color: 'var(--text)' }}
-              dangerouslySetInnerHTML={{ 
-                __html: insights.replace(/\n/g, '<br/>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
-              }}
-            />
-          ) : (
-            <p style={{ color: 'var(--muted)' }}>Click AI Insights to analyze your metrics.</p>
-          )}
-        </div>
-      )}
-
-      {insights && !loading && (
-        <div className="mt-6 text-xs" style={{ color: 'var(--muted)' }}>
-          <p>💡 These insights are AI-generated based on your current metrics. Use them as guidance alongside your own business judgment.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// === HERO COMPONENT ===
-
-
-
 // === FOOTER COMPONENT ===
 function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleFeedback }) {
   return (
     <footer 
-      className="mt-16 py-12"
+      className="mt-16 py-12 pb-32"
       style={{ 
         background: 'var(--surface)', 
         borderTop: '1px solid var(--border)' 
@@ -644,12 +443,12 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
           {/* Left Section - Waitlist */}
           <div>
             <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-              Join the Waitlist - To access the full version
+              Join the Beta Waitlist
             </h3>
             <p className="text-sm mb-4" style={{ color: 'var(--muted)' }}>
-              The first D2C dashboard built for CEOs, not Media Buyers. We separate the Noise (ROAS) from the Signal (Contribution Margin & EBITDA).
+              Be the first to access advanced features and analytics for your e-commerce business.
             </p>
-
+            
             <form onSubmit={handleWaitlistSubmit} className="flex gap-2">
               <input
                 type="email"
@@ -676,14 +475,13 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
                 {waitlistStatus === 'loading' ? 'Joining...' : 'Join Waitlist'}
               </button>
             </form>
-
-            {/* Status Messages */}
+            
             {waitlistStatus === 'success' && (
               <div 
                 className="mt-3 text-sm font-medium flex items-center gap-2"
                 style={{ color: '#10b981' }}
               >
-                <span>✓</span> You&apos;re on the list! We&apos;ll be in touch soon.
+                <span>✓</span> You're on the list! We'll be in touch soon.
               </div>
             )}
             {waitlistStatus === 'error' && (
@@ -694,17 +492,10 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
                 <span>✕</span> Please enter a valid email address.
               </div>
             )}
-         </div>
+          </div>
 
           {/* Right Section - Feedback & Info */}
           <div className="flex flex-col items-start md:items-end">
-            {/* <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text)' }}>
-              Help Us Improve
-            </h3>
-            <p className="text-sm mb-4 md:text-right" style={{ color: 'var(--muted)' }}>
-              Your feedback shapes the future of SignalROI.
-            </p> */}
-            
             <button
               onClick={handleFeedback}
               className="px-6 py-2 rounded-lg text-sm font-bold transition hover:opacity-90"
@@ -716,9 +507,9 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
               Send Feedback
             </button>
 
-            {/* Additional Info */}
             <div className="mt-8 text-xs md:text-right" style={{ color: 'var(--muted)' }}>
-              <p>© 2026 SignalROI. Built for decision makers.</p>
+              <p>© 2024 SignalROI. Built for decision makers.</p>
+              <p className="mt-1">Strategy Engine v1.0</p>
             </div>
           </div>
         </div>
