@@ -94,10 +94,33 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
-            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
-          </div>
+          <div className="flex items-center gap-3">
+  {/* Logo */}
+  <img
+    src="/android-chrome-192x192.png"   // replace with your logo path
+    alt="SignalROI logo"
+    width={42}
+    height={42}
+    className="w-11 h-11 object-contain"
+  />
+
+  {/* Text */}
+  <div>
+    <h1
+      className="text-2xl font-bold tracking-tight"
+      style={{ color: 'var(--text)' }}
+    >
+      SignalROI
+    </h1>
+    <p
+      className="text-xs font-medium"
+      style={{ color: 'var(--muted)' }}
+    >
+      For decision makers in e-commerce
+    </p>
+  </div>
+</div>
+
 
           <div className="flex items-center gap-3">
             {/* Theme Toggle Button */}
@@ -243,7 +266,7 @@ export default function Dashboard() {
                <Input name="units_sold" val={inputs.units_sold} onChange={handleInputChange} label="Units Sold" />
                <Input name="inventory_purchased_value" val={inputs.inventory_purchased_value} onChange={handleInputChange} label="Inv. Purchased" />
              </InputGroup>
-             <InputGroup title="Logistics">
+             <InputGroup title="Logistics (Total / Month)">
                <Input name="shipping_expense_forward" val={inputs.shipping_expense_forward} onChange={handleInputChange} label="Shipping" />
                <Input name="rto_penalty_total" val={inputs.rto_penalty_total} onChange={handleInputChange} label="RTO Penalty" />
                <Input name="warehouse_pick_pack_total" val={inputs.warehouse_pick_pack_total} onChange={handleInputChange} label="Packaging / Handling" />
@@ -481,7 +504,7 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
                 className="mt-3 text-sm font-medium flex items-center gap-2"
                 style={{ color: '#10b981' }}
               >
-                <span>✓</span> You're on the list! We'll be in touch soon.
+                <span>✓</span> You&apos;re on the list! We&apos;ll be in touch soon.
               </div>
             )}
             {waitlistStatus === 'error' && (
