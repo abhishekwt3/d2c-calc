@@ -94,9 +94,31 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="sticky top-0 z-10 shadow-sm" style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'var(--text)' }}>SignalROI</h1>
-            <p className="text-xs font-medium" style={{ color: 'var(--muted)' }}>For decision makers in e-commerce</p>
+          <div className="flex items-center gap-3">
+            {/* Logo */}
+            <img
+              src="/android-chrome-192x192.png"   // replace with your logo path
+              alt="SignalROI logo"
+              width={48}
+              height={48}
+              className="w-11 h-11 object-contain"
+            />
+
+            {/* Text */}
+            <div>
+              <h1
+                className="text-2xl font-bold tracking-tight"
+                style={{ color: 'var(--text)' }}
+              >
+                SignalROI
+              </h1>
+              <p
+                className="text-xs font-medium"
+                style={{ color: 'var(--muted)' }}
+              >
+                For decision makers in e-commerce
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -508,7 +530,7 @@ function Footer({ email, setEmail, waitlistStatus, handleWaitlistSubmit, handleF
             </button>
 
             <div className="mt-8 text-xs md:text-right" style={{ color: 'var(--muted)' }}>
-              <p>© 2024 SignalROI. Built for decision makers.</p>
+              <p>© 2026 SignalROI. Built for decision makers.</p>
               <p className="mt-1">Strategy Engine v1.0</p>
             </div>
           </div>
